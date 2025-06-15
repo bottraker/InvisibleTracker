@@ -12,16 +12,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # --- INICIO DE LA SOLUCIÓN ---
-    # Define el directorio de trabajo para todos los comandos 'run' de este job.
-    # ¡ESTA ES LA LÍNEA CLAVE QUE SOLUCIONA EL PROBLEMA!
-    defaults:
-      run:
-        working-directory: ./InvisibleTracker 
-    # --- FIN DE LA SOLUCIÓN ---
-
     steps:
-    # 1. Descarga el código del repositorio. Esto no cambia.
+    # 1. Descarga el código del repositorio.
     - name: Checkout repository
       uses: actions/checkout@v4
 
@@ -32,12 +24,13 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         
-    # 3. Cache de Gradle.
+    # 3. Cache de Gradle. Las rutas aquí deben ser desde la raíz.
     - name: Cache Gradle packages
       uses: actions/cache@v4
       with:
-        # La ruta de la caché debe ajustarse al directorio de trabajo
-        path: InvisibleTracker/.gradle/caches
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
@@ -46,20 +39,25 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
+    # --- INICIO DE LA SOLUCIÓN ---
+    # En lugar de un 'default', especificamos el directorio de trabajo en cada paso 'run'.
+    
     # 5. Da permisos de ejecución al script de Gradle.
-    #    Ahora funcionará porque se ejecuta dentro de ./InvisibleTracker
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+      working-directory: ./InvisibleTracker # <-- Especificamos el directorio aquí
 
     # 6. Compila la aplicación.
     - name: Build with Gradle
       run: ./gradlew assembleRelease --stacktrace
+      working-directory: ./InvisibleTracker # <-- Y aquí también
+      
+    # --- FIN DE LA SOLUCIÓN ---
 
-    # 7. Sube el APK generado.
+    # 7. Sube el APK generado. La ruta debe ser desde la raíz.
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: invisible-tracker-release-unsigned
-        # La ruta del artefacto también debe incluir el directorio
         path: InvisibleTracker/app/build/outputs/apk/release/app-release-unsigned.apk
         retention-days: 30
