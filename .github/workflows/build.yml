@@ -1,25 +1,31 @@
+# .github/workflows/build.yml
+
 name: Build Invisible Tracker
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ "main", "master" ]
 
 jobs:
   build:
+    # El trabajo se ejecutará en una máquina virtual Ubuntu
     runs-on: ubuntu-latest
-    
+
     steps:
+    # 1. Descarga el código del repositorio
     - name: Checkout repository
       uses: actions/checkout@v4
-    
+
+    # 2. Configura el entorno de Java (JDK 17 es requerido por el Android Gradle Plugin 8.x)
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-    
+        
+    # 3. (OPCIONAL PERO RECOMENDADO) Cache de Gradle para acelerar builds futuros
     - name: Cache Gradle packages
       uses: actions/cache@v4
       with:
@@ -29,22 +35,29 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-    
+
+    # 4. Configura el SDK de Android
+    #    Este es el paso CLAVE que faltaba. Se encarga de:
+    #    - Descargar las herramientas del SDK
+    #    - Definir ANDROID_SDK_ROOT
+    #    - Aceptar las licencias automáticamente
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    # 5. Da permisos de ejecución al script de Gradle
     - name: Grant execute permission for gradlew
-      run: chmod +x ./gradlew
-    
-    - name: Accept Android SDK licenses
-      run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
-    
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-    
+      run: chmod +x gradlew
+
+    # 6. Compila la aplicación para generar el APK de release
+    #    --stacktrace es útil para obtener más detalles si la compilación falla
     - name: Build with Gradle
       run: ./gradlew assembleRelease --stacktrace
-    
+
+    # 7. Sube el APK generado como un "artefacto" del build
+    #    El APK estará disponible para descargar desde la página de la Action durante 30 días.
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: invisible-tracker-release
+        name: invisible-tracker-release-unsigned
         path: app/build/outputs/apk/release/app-release-unsigned.apk
         retention-days: 30
