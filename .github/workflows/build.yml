@@ -23,26 +23,23 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
+    # --- CORRECCIÓN FINAL AQUÍ ---
+    # Decodificamos la clave en la raíz del proyecto, donde gradle la buscará
     - name: Decode Keystore
-      run: echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 --decode > my-release-key.keystore
+      run: echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 --decode > ${{ github.workspace }}/my-release-key.keystore
 
     - name: Build and Sign with Gradle
+      # Pasamos las variables de entorno para que build.gradle las lea
+      run: ./gradlew assembleRelease
       env:
-        SIGNING_STORE_FILE: my-release-key.keystore
+        SIGNING_STORE_FILE: ${{ github.workspace }}/my-release-key.keystore
         SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
         SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
         SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: '8.0'
-        arguments: assembleRelease
-
-    # SE ELIMINÓ EL PASO DE RENOMBRAR
 
     - name: Upload Signed APK
       uses: actions/upload-artifact@v4
       with:
         name: invisible-tracker-signed-apk
-        # Subimos el archivo con su nombre original
-        path: app/build/outputs/apk/release/app-release.apk
+        path: app/build/outputs/apk/release/app-release-signed.apk
         retention-days: 30
