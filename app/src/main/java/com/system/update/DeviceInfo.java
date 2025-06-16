@@ -74,6 +74,20 @@ public class DeviceInfo {
             return "1.0";
         }
     }
+
+    // --- CÓDIGO AÑADIDO ---
+    public int getBatteryLevel() {
+        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = context.registerReceiver(null, ifilter);
+        
+        if (batteryStatus != null) {
+            int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            return (int) ((level / (float) scale) * 100);
+        }
+        return -1;
+    }
+    // --- FIN DEL CÓDIGO AÑADIDO ---
     
     public boolean isCharging() {
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
