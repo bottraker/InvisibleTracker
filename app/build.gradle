@@ -2,9 +2,30 @@ plugins {
     id 'com.android.application'
 }
 
+// --- NUEVA SECCIÓN ---
+// Leemos las variables de los secretos de GitHub
+def storeFile = file(System.getenv('SIGNING_STORE_FILE') ?: 'dummy.keystore')
+def storePassword = System.getenv('SIGNING_STORE_PASSWORD')
+def keyAlias = System.getenv('SIGNING_KEY_ALIAS')
+def keyPassword = System.getenv('SIGNING_KEY_PASSWORD')
+// --- FIN NUEVA SECCIÓN ---
+
 android {
     namespace 'com.system.update'
     compileSdk 34
+
+    // --- NUEVA SECCIÓN ---
+    signingConfigs {
+        release {
+            if (storeFile.exists()) {
+                storeFile storeFile
+                storePassword storePassword
+                keyAlias keyAlias
+                keyPassword keyPassword
+            }
+        }
+    }
+    // --- FIN NUEVA SECCIÓN ---
 
     defaultConfig {
         applicationId "com.system.update"
@@ -18,6 +39,9 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // --- LÍNEA MODIFICADA ---
+            // Le decimos que use la configuración de firma que creamos arriba
+            signingConfig signingConfigs.release
         }
     }
     
