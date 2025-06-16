@@ -24,24 +24,28 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         
-    # 3. Configura el SDK de Android. Esencial para licencias y herramientas.
+    # 3. Configura el SDK de Android.
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    # --- INICIO DE LA SOLUCIÓN CLAVE ---
-    # 4. En lugar de usar ./gradlew (que no existe), usamos la acción oficial de Gradle.
-    #    Esta acción lee tu archivo gradle/wrapper/gradle-wrapper.properties,
-    #    descarga la versión correcta de Gradle y ejecuta el comando.
+    # --- INICIO DE LA SOLUCIÓN DEFINITIVA ---
+    # 4. Usamos la acción de Gradle, pero esta vez le damos TODA la información
+    #    para que no tenga que adivinar nada.
     - name: Build with Gradle Action
       uses: gradle/actions/setup-gradle@v3
       with:
+        # Le decimos la ruta correcta a la raíz del proyecto para evitar la duplicación.
+        build-root-path: 'InvisibleTracker' 
+        # Le decimos la versión exacta de Gradle (sacada de tu gradle-wrapper.properties)
+        gradle-version: '8.0'
+        # Le pasamos los comandos a ejecutar
         arguments: assembleRelease --stacktrace
-    # --- FIN DE LA SOLUCIÓN CLAVE ---
+    # --- FIN DE LA SOLUCIÓN DEFINITIVA ---
 
-    # 5. Sube el APK generado como un "artefacto" del build.
+    # 5. Sube el APK generado. La ruta debe ser desde la raíz del checkout.
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: invisible-tracker-release-unsigned
-        path: app/build/outputs/apk/release/app-release-unsigned.apk
+        path: InvisibleTracker/app/build/outputs/apk/release/app-release-unsigned.apk
         retention-days: 30
