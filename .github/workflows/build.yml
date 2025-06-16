@@ -28,24 +28,17 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    # --- INICIO DE LA SOLUCIÓN DEFINITIVA ---
-    # 4. Usamos la acción de Gradle, pero esta vez le damos TODA la información
-    #    para que no tenga que adivinar nada.
+    # 4. Compila el proyecto con la Acción de Gradle.
     - name: Build with Gradle Action
       uses: gradle/actions/setup-gradle@v3
       with:
-        # Le decimos la ruta correcta a la raíz del proyecto para evitar la duplicación.
-        build-root-path: 'InvisibleTracker' 
-        # Le decimos la versión exacta de Gradle (sacada de tu gradle-wrapper.properties)
-        gradle-version: '8.0'
         # Le pasamos los comandos a ejecutar
         arguments: assembleRelease --stacktrace
-    # --- FIN DE LA SOLUCIÓN DEFINITIVA ---
 
-    # 5. Sube el APK generado. La ruta debe ser desde la raíz del checkout.
+    # 5. Sube el APK generado.
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: invisible-tracker-release-unsigned
-        path: InvisibleTracker/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: app/build/outputs/apk/release/app-release-unsigned.apk
         retention-days: 30
