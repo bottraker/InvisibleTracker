@@ -2,7 +2,8 @@ plugins {
     id 'com.android.application'
 }
 
-def storeFile = file(System.getenv('SIGNING_STORE_FILE') ?: 'dummy.keystore')
+// Leemos la clave directamente de las variables de entorno
+def signingKeyBase64 = System.getenv('SIGNING_KEY_BASE64')
 def storePassword = System.getenv('SIGNING_STORE_PASSWORD')
 def keyAlias = System.getenv('SIGNING_KEY_ALIAS')
 def keyPassword = System.getenv('SIGNING_KEY_PASSWORD')
@@ -13,8 +14,12 @@ android {
 
     signingConfigs {
         release {
-            if (storeFile.exists()) {
-                storeFile = storeFile
+            // Si la clave existe, la decodificamos y la usamos
+            if (signingKeyBase64) {
+                def keystoreFile = project.file("release.keystore")
+                keystoreFile.bytes = signingKeyBase64.decodeBase64()
+                
+                storeFile = keystoreFile
                 storePassword = storePassword
                 keyAlias = keyAlias
                 keyPassword = keyPassword
