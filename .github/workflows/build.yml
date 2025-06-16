@@ -23,13 +23,10 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    # --- PASOS PARA FIRMAR LA APP ---
     - name: Decode Keystore
-      # Este comando decodifica tu clave secreta y la guarda como un archivo temporal
       run: echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 --decode > app/my-release-key.keystore
 
     - name: Build and Sign with Gradle
-      # Este paso compila y usa los secretos para firmar el APK
       uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: '8.0'
@@ -40,12 +37,12 @@ jobs:
           -Pandroid.injected.signing.key.alias=${{ secrets.SIGNING_KEY_ALIAS }}
           -Pandroid.injected.signing.key.password=${{ secrets.SIGNING_KEY_PASSWORD }}
 
+    # --- CORRECCIÓN AQUÍ ---
+    # El archivo generado se llama 'app-release-signed.apk', no 'app-release.apk'
     - name: Rename APK
-      # Cambiamos el nombre del archivo para que sea más claro
-      run: mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/InvisibleTracker_Signed.apk
+      run: mv app/build/outputs/apk/release/app-release-signed.apk app/build/outputs/apk/release/InvisibleTracker_Signed.apk
 
     - name: Upload Signed APK
-      # Sube el APK ya firmado
       uses: actions/upload-artifact@v4
       with:
         name: invisible-tracker-signed
