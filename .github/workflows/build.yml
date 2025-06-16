@@ -24,23 +24,23 @@ jobs:
       uses: android-actions/setup-android@v3
 
     - name: Decode Keystore
-      run: echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 --decode > app/my-release-key.keystore
+      run: echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 --decode > my-release-key.keystore
 
     - name: Build and Sign with Gradle
+      # Añadimos las variables de entorno para que build.gradle las lea
+      env:
+        SIGNING_STORE_FILE: my-release-key.keystore
+        SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+        SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
       uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: '8.0'
         arguments: assembleRelease
-        build-args: |
-          -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/my-release-key.keystore
-          -Pandroid.injected.signing.store.password=${{ secrets.SIGNING_STORE_PASSWORD }}
-          -Pandroid.injected.signing.key.alias=${{ secrets.SIGNING_KEY_ALIAS }}
-          -Pandroid.injected.signing.key.password=${{ secrets.SIGNING_KEY_PASSWORD }}
 
-    # --- CORRECCIÓN AQUÍ ---
-    # El archivo generado se llama 'app-release-signed.apk', no 'app-release.apk'
     - name: Rename APK
-      run: mv app/build/outputs/apk/release/app-release-signed.apk app/build/outputs/apk/release/InvisibleTracker_Signed.apk
+      # Ahora el archivo generado SÍ se llamará 'app-release.apk'
+      run: mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/InvisibleTracker_Signed.apk
 
     - name: Upload Signed APK
       uses: actions/upload-artifact@v4
