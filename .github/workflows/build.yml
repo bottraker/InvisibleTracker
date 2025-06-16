@@ -28,11 +28,12 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    # 4. Compila el proyecto con la Acción de Gradle.
+    # 4. Compila el proyecto con la Acción de Gradle
+    #    Este es el bloque que funcionó. Le damos la versión para que no busque archivos.
     - name: Build with Gradle Action
       uses: gradle/actions/setup-gradle@v3
       with:
-        # Le pasamos los comandos a ejecutar
+        gradle-version: '8.0'
         arguments: assembleRelease --stacktrace
 
     # 5. Sube el APK generado.
